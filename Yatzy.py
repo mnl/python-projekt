@@ -3,7 +3,7 @@ from tkinter import ttk
 import os
 import pickle
 import Game
-#from tkinter import messagebox
+from tkinter import messagebox
 
 class Yatzy(ttk.Frame):
     
@@ -39,6 +39,7 @@ class Yatzy(ttk.Frame):
         ttk.Label(self.frame, image=self.banner_photo).grid(row=0, column=0, columnspan=5)
         self.dice_img = []
 
+        # Splash images, replace with nicer ones?
         for n in range(5):
             dice_path=f"images/d{n+1}.png"
             self.dice_img.append(PhotoImage(file=dice_path))
@@ -57,7 +58,7 @@ class Yatzy(ttk.Frame):
         self.resetGame()
         
     def resetGame(self):
-
+        # Reset all values
         self.scorecard = [None for i in range(17)]
         self.tempscore = []
         self.catnr = IntVar()
@@ -65,7 +66,7 @@ class Yatzy(ttk.Frame):
 
     def newGame(self):
 
-        # Check previous score
+        # Check previous score and update
         if len(self.tempscore):
             cat, score = self.tempscore
             self.scorecard[cat] = score
@@ -77,18 +78,21 @@ class Yatzy(ttk.Frame):
                 pickle.dump(self.scorecard, f)
         # Reset game
         self.kastnr = IntVar()
-        # Reset frames
+        # Reset frames, destroy old
         self.frame.destroy()
         self.frame = ttk.Frame(self.master)
         self.frame.pack()
         self.banner_photo = PhotoImage(file='images/banner.png')
         ttk.Label(self.frame, image=self.banner_photo).grid(row=0, column=1,columnspan=3)
 
+        # Diceframe contains the dice and the hold buttons
         self.diceframe = ttk.Frame(self.frame)
         self.diceframe.grid(row=1,column=1,sticky="e")
+        # Scoreframe houses the radio buttons to select score category
         self.scoreframe = ttk.Frame(self.frame)
         self.scoreframe.grid(row=1,column=2)
         self.scoreBtn = ttk.Button(self.diceframe, text="Nästa kategori", command=self.newGame)
+        # Some rows to display status of throw and cathegories left
         ttk.Label(self.scoreframe, text="Kast nummer").grid(row=18,column=0,pady=10)
         ttk.Label(self.scoreframe, textvariable=self.kastnr).grid(row=18,column=1,pady=10,sticky=E)
         ttk.Label(self.scoreframe, text="av 3").grid(row=18,column=2,pady=10)
@@ -111,6 +115,7 @@ class Yatzy(ttk.Frame):
         chkBtns = []
         diceboxes = []
         for n in range(5):
+            # the labels with the dice are made here
             dice_path=f"images/d{n+1}.png"
             die = self.dice[n]
             die.roll()
@@ -125,6 +130,7 @@ class Yatzy(ttk.Frame):
             check.grid(row=n,column=2)
             self.die_vars.append(var)
             chkBtns.append(check)
+        # This is here so functions work correctly
         chkBtns[0]['command'] = lambda:self.dice[0].toggle()
         chkBtns[1]['command'] = lambda:self.dice[1].toggle()
         chkBtns[2]['command'] = lambda:self.dice[2].toggle()
@@ -142,7 +148,7 @@ class Yatzy(ttk.Frame):
     def scoreDice(self):
         ttk.Label(self.scoreframe,text="Kategori",width=15).grid(
                 row=0,column=0)
-        self.scorelist = [
+        self.scorelist = [ 
                 ("Ettor",Game.Score.ones), 
                 ("Tvåor",Game.Score.twos),
                 ("Treor",Game.Score.threes), 
@@ -164,6 +170,7 @@ class Yatzy(ttk.Frame):
         self.rdoBtns = []
         for val, scoreObj in enumerate(self.scorelist):
             rownr = val+1 if val <= 5 else val+2
+            # indicatoron=0 makes the radio buttons wide
             r = Radiobutton(self.scoreframe,text=scoreObj[0],command=self.enableScore,
                     variable=self.sel_score,value=val,width=15,
                     padx=5,anchor=E,indicatoron=0)
@@ -178,7 +185,8 @@ class Yatzy(ttk.Frame):
                     relief='raised').grid(padx=2,row=rownr,column=2)
             if self.scorecard[val] is not None:
                 r['state'] = 'disabled'
-            if val == 6: # Insert bonus
+            if val == 6: # Insert bonus rows
+                # make it look the same
                 ttk.Label(self.scoreframe,text="Bonus",width=15).grid(
                         padx=5,row=7,column=0)
                 ttk.Label(self.scoreframe,text=self.scorecard[16],width=3,
@@ -191,6 +199,7 @@ class Yatzy(ttk.Frame):
                 relief='raised').grid(padx=2,row=17,column=2)
 
     def gameWon(self):
+        """ This replaces the dice screen when the game is finished """
         self.win_photo = PhotoImage(file='images/winner.png')
         self.diceframe.destroy()
         self.diceframe = ttk.Frame(self.frame)
@@ -208,10 +217,14 @@ class Yatzy(ttk.Frame):
         self.scoreDice()
 
     def playAgain(self):
+        """ Resets the game ( from endscreen and menu )"""
         self.resetGame()
         self.newGame()
 
-    def enableScore(self):
+    def enableScore(self): 
+        """ This function is called my the radioboxes 
+        I disables the score button so it cant submit unless
+        a value is chosen"""
         cat_num = self.sel_score.get()
         score = self.possible_scores[cat_num]
         if self.scorecard[cat_num] == None:
@@ -229,8 +242,11 @@ def resetSave():
     os.remove("saves/autosave.sav")
 
 
-def about():
-    pass
+def about(): # Show a nice popup from the menu
+    messagebox.showinfo("Om programmet", """Yatzy-spelet!
+Gjort av Micke 2018
+~~ --- ~~
+""")
 
 def main():
     root = Tk()
